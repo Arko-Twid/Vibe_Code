@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -27,15 +28,19 @@ func signupHandler(c *fiber.Ctx) error {
 	}
 	var body req
 	if err := c.BodyParser(&body); err != nil {
+		fmt.Println("[Signup] BodyParser error:", err)
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 	user := User{ID: uuid.New().String(), Email: body.Email, Role: "customer"}
 	if err := user.SetPassword(body.Password); err != nil {
+		fmt.Println("[Signup] Password hash error:", err)
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to hash password"})
 	}
 	if err := DB.Create(&user).Error; err != nil {
+		fmt.Println("[Signup] DB error:", err)
 		return c.Status(400).JSON(fiber.Map{"error": "Email already exists"})
 	}
+	fmt.Println("[Signup] Success for:", user.Email)
 	return c.JSON(fiber.Map{"message": "Signup successful"})
 }
 
@@ -46,13 +51,16 @@ func loginHandler(c *fiber.Ctx) error {
 	}
 	var body req
 	if err := c.BodyParser(&body); err != nil {
+		fmt.Println("[Login] BodyParser error:", err)
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 	var user User
 	if err := DB.Where("email = ?", body.Email).First(&user).Error; err != nil {
+		fmt.Println("[Login] DB error:", err)
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid credentials"})
 	}
 	if !user.CheckPassword(body.Password) {
+		fmt.Println("[Login] Password check failed for:", body.Email)
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid credentials"})
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -64,8 +72,10 @@ func loginHandler(c *fiber.Ctx) error {
 	secret := os.Getenv("JWT_SECRET")
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
+		fmt.Println("[Login] JWT sign error:", err)
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate token"})
 	}
+	fmt.Println("[Login] Success for:", user.Email)
 	return c.JSON(fiber.Map{"token": tokenString})
 }
 

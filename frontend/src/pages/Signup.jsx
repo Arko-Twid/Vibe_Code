@@ -13,11 +13,14 @@ export default function Signup() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    console.log("Attempting signup with:", { email, password });
     try {
-      await axios.post("http://localhost:8080/signup", { email, password });
+      const res = await axios.post("http://localhost:8080/signup", { email, password });
+      console.log("Signup response:", res.data);
       setSuccess("Signup successful! Please login.");
       setTimeout(() => navigate("/login"), 1200);
-    } catch {
+    } catch (err) {
+      console.log("Signup error:", err.response?.data || err.message);
       setError("Signup failed. Email may already be in use.");
     }
   };
