@@ -5,6 +5,9 @@ import (
 )
 
 func main() {
+	ConnectDB()
+	DB.AutoMigrate(&Product{}, &User{})
+
 	app := fiber.New()
 
 	// Health check
@@ -12,8 +15,7 @@ func main() {
 		return c.SendString("OK")
 	})
 
-	// Setup routes (to be implemented)
-	// setupRoutes(app)
+	setupRoutes(app)
 
 	app.Listen(":8080")
 }
