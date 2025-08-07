@@ -1,0 +1,31 @@
+# Node
+node_modules/
+build/
+dist/
+.env
+.env.*
+
+# Go
+bin/
+*.exe
+*.test
+*.out
+
+# Python (for AI scripts)
+__pycache__/
+*.pyc
+
+# System
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Docker
+*.local
+
+# IDEs
+.vscode/
+.idea/
