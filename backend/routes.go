@@ -29,7 +29,7 @@ func signupHandler(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
-	user := User{Email: body.Email, Role: "customer"}
+	user := User{ID: uuid.New().String(), Email: body.Email, Role: "customer"}
 	if err := user.SetPassword(body.Password); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to hash password"})
 	}
@@ -56,7 +56,7 @@ func loginHandler(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid credentials"})
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.ID.String(),
+		"user_id": user.ID,
 		"email":   user.Email,
 		"role":    user.Role,
 		"exp":     time.Now().Add(time.Hour * 72).Unix(),
@@ -91,7 +91,7 @@ func createProductHandler(c *fiber.Ctx) error {
 	if err := c.BodyParser(&product); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
-	product.ID = uuid.New()
+	product.ID = uuid.New().String()
 	product.CreatedAt = time.Now()
 	if err := DB.Create(&product).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to create product"})

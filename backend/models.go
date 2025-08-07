@@ -1,37 +1,41 @@
 package main
 
 import (
+	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Product represents a stationary item in the marketplace
-// Uses Postgres uuid and text[] types
-// GORM auto-migrates these fields for Postgres
-
 type Product struct {
-	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	ID          string    `gorm:"primaryKey" json:"id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Price       float64   `json:"price"`
 	ImageURL    string    `json:"image_url"`
 	Category    string    `json:"category"`
-	Tags        []string  `gorm:"type:text[]" json:"tags"` // Postgres array
+	Tags        string    `json:"tags"` // comma-separated
 	Stock       int       `json:"stock"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 
-// User represents a customer or admin
-// Uses Postgres uuid type for ID
-
 type User struct {
-	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	ID        string    `gorm:"primaryKey" json:"id"`
 	Email     string    `gorm:"unique" json:"email"`
-	Password  string    `json:"-"`    // omit from JSON responses
-	Role      string    `json:"role"` // customer, admin
+	Password  string    `json:"-"`
+	Role      string    `json:"role"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+// Helper to convert []string to comma-separated string for tags
+func TagsToString(tags []string) string {
+	return strings.Join(tags, ",")
+}
+func StringToTags(tags string) []string {
+	if tags == "" {
+		return []string{}
+	}
+	return strings.Split(tags, ",")
 }
 
 // Password helpers for User
@@ -43,7 +47,6 @@ func (u *User) SetPassword(password string) error {
 	u.Password = string(hash)
 	return nil
 }
-
 func (u *User) CheckPassword(password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)) == nil
 }
